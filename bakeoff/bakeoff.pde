@@ -29,6 +29,7 @@ private class Target {
 }
 
 ArrayList<Target> targets = new ArrayList<Target>();
+ArrayList<Float> originalRots = new ArrayList<Float>();
 
 float inchesToPixels(float inch) {
   return inch * screenPPI;
@@ -56,6 +57,10 @@ void setup() {
   }
 
   Collections.shuffle(targets);  // Randomize the order of the button; don't change this.
+  
+  for (Target t : targets) {
+    originalRots.add(t.rotation); 
+  }
 }
 
 void draw() {
@@ -84,7 +89,7 @@ void draw() {
   translate(t.x, t.y);  // Center the drawing coordinates to the center of the screen
   translate(screenTransX, screenTransY);  // Center the drawing coordinates to the center of the screen
 
-  rotate(t.rotation);
+  rotate(radians(t.rotation));
 
   fill(255, 221, 70);  // Set color to yello
   rect(0, 0, t.z, t.z);
@@ -130,6 +135,9 @@ void scaffoldControlLogic() {
     translateOn = false;
     rotateOn = true;
     scaleOn = false;
+    
+    startingAng = t.rotation;
+    firstTouch = true;
   } else if (mousePressed & inchesToPixels(1.2f) <= mouseX && mouseX <= inchesToPixels(1.7) 
     && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
     translateOn = false;
@@ -184,8 +192,16 @@ void scaffoldControlLogic() {
   fill(255);
 }
 
+boolean firstTouch = true;
+float startingAng = 0.0;
+float startingDiff = 0.0;
+
 void mouseDragged() {
+  if (userDone) return;
+  
   Target t = targets.get(trialIndex);
+  
+  if (mouseY > height - inchesToPixels(0.5f)) return;
   
   // If translating, just move relative to the mousex and mousey
   if (translateOn) {
@@ -195,21 +211,33 @@ void mouseDragged() {
   
   // If scaling and within the corners of square, scale proportionally with mouse
   if (scaleOn && overTarget && !overCircle) {
-    System.out.println("In here!");
-    t.z = 2 * dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y); 
+    t.z = constrain(2 * dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y), inchesToPixels(0.15f), inchesToPixels(3.9f)); 
   }
   
   // If rotating, rotate as the mouse moves around square
   if (rotateOn) {
     pushMatrix();
     translate(width / 2, height / 2);
-    float ang = atan2(mouseY, mouseX);
+    float ang = degrees(atan2(mouseY - height / 2 - t.y, mouseX - width / 2 - t.x));
+    
+    if (firstTouch) {
+      startingAng = t.rotation; 
+      firstTouch = false;
+      startingDiff = (float)calculateDifferenceBetweenAngles(startingAng, ang);
+    }
+    
     popMatrix();
-    t.rotation = ang; 
+    t.rotation = ang - startingDiff; 
   }
 }
 
 void mouseReleased() {
+  if (userDone) return;
+  
+  Target t = targets.get(trialIndex);
+  startingAng = t.rotation;
+  firstTouch = true;
+  
   // Check to see if user clicked middle of screen
   if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
     if (userDone == false && !checkForSuccess()) {
@@ -250,7 +278,7 @@ public boolean checkForSuccess() {
 
 double calculateDifferenceBetweenAngles(float a1, float a2) {
   double diff=abs(a1-a2);
-  diff%=90;
+  diff %= 90;
   if (diff>45)
     return 90-diff;
   else
