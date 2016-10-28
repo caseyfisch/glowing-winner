@@ -81,13 +81,12 @@ void draw() {
 
   Target t = targets.get(trialIndex);
 
-
   translate(t.x, t.y);  // Center the drawing coordinates to the center of the screen
   translate(screenTransX, screenTransY);  // Center the drawing coordinates to the center of the screen
 
-  rotate(radians(t.rotation));
+  rotate(t.rotation);
 
-  fill(255, 0, 0);  // Set color to semi translucent
+  fill(255, 221, 70);  // Set color to yello
   rect(0, 0, t.z, t.z);
 
   popMatrix();
@@ -120,6 +119,7 @@ void scaffoldControlLogic() {
   
   Target t = targets.get(trialIndex);
   
+  // Control which mode is toggled on
   if (mousePressed & inchesToPixels(.1f) <= mouseX && mouseX <= inchesToPixels(0.5) 
     && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
     translateOn = true;
@@ -137,6 +137,7 @@ void scaffoldControlLogic() {
     scaleOn = true;
   }
   
+  // If we're scaling, detect where the mouse has grabbed the corner
   if (scaleOn) {
     if (dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y) < t.z / 2) {
       overCircle = true;
@@ -150,7 +151,6 @@ void scaffoldControlLogic() {
       overTarget = false;
     } 
   }
-  
   
   if (translateOn) {
     fill(255);
@@ -186,20 +186,24 @@ void scaffoldControlLogic() {
 
 void mouseDragged() {
   Target t = targets.get(trialIndex);
+  
+  // If translating, just move relative to the mousex and mousey
   if (translateOn) {
     t.x += mouseX - pmouseX;
     t.y += mouseY - pmouseY;
   }
   
+  // If scaling and within the corners of square, scale proportionally with mouse
   if (scaleOn && overTarget && !overCircle) {
     System.out.println("In here!");
     t.z = 2 * dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y); 
   }
   
+  // If rotating, rotate as the mouse moves around square
   if (rotateOn) {
     pushMatrix();
-    translate(width / 2 + t.x, height / 2 + t.y);
-    float ang = atan2(mouseY - height / 2 - t.y, mouseX - width / 2 - t.x);
+    translate(width / 2, height / 2);
+    float ang = atan2(mouseY, mouseX);
     popMatrix();
     t.rotation = ang; 
   }
@@ -220,6 +224,9 @@ void mouseReleased() {
     screenZ = 200f;
     screenRotation = 0;
     
+    translateOn = true;
+    rotateOn = false;
+    scaleOn = false;
 
     if (trialIndex == trialCount && userDone == false) {
       userDone = true;
