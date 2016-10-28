@@ -7,7 +7,7 @@ int index = 0;
 float screenTransX = 0;
 float screenTransY = 0;
 float screenRotation = 0;
-float screenZ = 50f;
+float screenZ = 200f;
 
 int trialCount = 4;         // This will be set higher for the bakeoff
 float border = 0;           // Have some padding from the sides
@@ -107,59 +107,107 @@ void draw() {
 
   scaffoldControlLogic();  // You are going to want to replace this!
 
+  fill(255);
   text("Trial " + (trialIndex+1) + " of " +trialCount, width/2, inchesToPixels(.5f));
 }
 
+boolean translateOn = true;
+boolean rotateOn = false;
+boolean scaleOn = false;
+boolean overTarget = false, overCircle = false;
+
 void scaffoldControlLogic() {
-  // Upper left corner, rotate counterclockwise
-  text("CCW", inchesToPixels(.2f), inchesToPixels(.2f));
-  if (mousePressed && dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenRotation--;
+  
+  Target t = targets.get(trialIndex);
+  
+  if (mousePressed & inchesToPixels(.1f) <= mouseX && mouseX <= inchesToPixels(0.5) 
+    && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
+    translateOn = true;
+    rotateOn = false;
+    scaleOn = false;
+  } else if (mousePressed & inchesToPixels(.6f) <= mouseX && mouseX <= inchesToPixels(1.1) 
+    && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
+    translateOn = false;
+    rotateOn = true;
+    scaleOn = false;
+  } else if (mousePressed & inchesToPixels(1.2f) <= mouseX && mouseX <= inchesToPixels(1.7) 
+    && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
+    translateOn = false;
+    rotateOn = false;
+    scaleOn = true;
   }
-
-  // Upper right corner, rotate clockwise
-  text("CW", width - inchesToPixels(.2f), inchesToPixels(.2f));
-  if (mousePressed && dist(width, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenRotation++;
+  
+  if (scaleOn) {
+    if (dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y) < t.z / 2) {
+      overCircle = true;
+      overTarget = true;
+    } else if (width / 2 + t.x - t.z / 2 <= mouseX && mouseX <= width / 2 + t.x + t.z / 2 &&
+              height / 2 + t.y - t.z / 2 <= mouseY && mouseY <= height / 2 + t.z + t.x / 2) {
+      overCircle = false;
+      overTarget = true;
+    } else {
+      overCircle = false;
+      overTarget = false;
+    } 
   }
-
-  // Lower left corner, decrease Z
-  text("-", inchesToPixels(.2f), height - inchesToPixels(.2f));
-  if (mousePressed && dist(0, height, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenZ -= inchesToPixels(.02f);
+  
+  
+  if (translateOn) {
+    fill(255);
+  } else {
+    stroke(255);
+    strokeWeight(4);
+    fill(60);
   }
+  rect(inchesToPixels(0.25f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f));  
 
-  // Lower right corner, increase Z
-  text("+", width - inchesToPixels(.2f), height - inchesToPixels(.2f));
-  if (mousePressed && dist(width, height, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenZ += inchesToPixels(.02f);
+  if (rotateOn) {
+    fill(255);
+  } else {
+    stroke(255);
+    strokeWeight(4);
+    fill(60);
   }
+  rect(inchesToPixels(0.85f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f)); 
+  
+  if (scaleOn) {
+    fill(255);
+  } else {
+    stroke(255);
+    strokeWeight(4);
+    fill(60);
+  } 
+  rect(inchesToPixels(1.45f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f));   
+  
+  noStroke();
+  
+  fill(255);
+}
 
-  // Left middle, move left
-  text("left", inchesToPixels(.2f), height / 2);
-  if (mousePressed && dist(0, height / 2, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenTransX -= inchesToPixels(.02f);
+void mouseDragged() {
+  Target t = targets.get(trialIndex);
+  if (translateOn) {
+    t.x += mouseX - pmouseX;
+    t.y += mouseY - pmouseY;
   }
-
-  text("right", width - inchesToPixels(.2f), height / 2);
-  if (mousePressed && dist(width, height / 2, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenTransX += inchesToPixels(.02f);
+  
+  if (scaleOn && overTarget && !overCircle) {
+    System.out.println("In here!");
+    t.z = 2 * dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y); 
   }
-
-  text("up", width / 2, inchesToPixels(.2f));
-  if (mousePressed && dist(width / 2, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenTransY -= inchesToPixels(.02f);
-  }
-
-  text("down", width / 2, height-inchesToPixels(.2f));
-  if (mousePressed && dist(width / 2, height, mouseX, mouseY) < inchesToPixels(.5f)) {
-    screenTransY += inchesToPixels(.02f);
+  
+  if (rotateOn) {
+    pushMatrix();
+    translate(width / 2 + t.x, height / 2 + t.y);
+    float ang = atan2(mouseY - height / 2 - t.y, mouseX - width / 2 - t.x);
+    popMatrix();
+    t.rotation = ang; 
   }
 }
 
 void mouseReleased() {
   // Check to see if user clicked middle of screen
-  if (dist(width / 2, height / 2, mouseX, mouseY) < inchesToPixels(.5f)) {
+  if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
     if (userDone == false && !checkForSuccess()) {
       errorCount++;
     }
@@ -169,6 +217,9 @@ void mouseReleased() {
 
     screenTransX = 0;
     screenTransY = 0;
+    screenZ = 200f;
+    screenRotation = 0;
+    
 
     if (trialIndex == trialCount && userDone == false) {
       userDone = true;
