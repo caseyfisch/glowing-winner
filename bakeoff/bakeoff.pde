@@ -266,6 +266,7 @@ void scaffoldControlLogic() {
 
 boolean firstTouch = true;
 float startingAng = 0.0;
+float touchAng = 0.0;
 float startingDiff = 0.0;
 
 void mouseDragged() {
@@ -305,13 +306,11 @@ void mouseDragged() {
     if (firstTouch) {
       startingAng = t.rotation; 
       firstTouch = false;
-      startingDiff = (float)calculateDifferenceBetweenAngles(startingAng, ang);
+      touchAng = ang;
     }
     
-    //System.out.println("-----------------------------");
-    //System.out.println("TROT': " + t.rotation + " Ang: " + ang + " Starting: " + startingDiff + " Diff: " + calculateDifferenceBetweenAngles(startingAng, ang));
     popMatrix();
-    t.rotation = ang - startingDiff; //(float)calculateDifferenceBetweenAngles(startingAng, ang) - startingDiff; 
+    t.rotation = startingAng + (ang - touchAng);  
     
     if (rotCloseEnough()) {
       Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
@@ -324,11 +323,14 @@ void mouseDragged() {
 void mouseReleased() {
   if (userDone) return;
   
-  if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
+  // Can't submit unless all values are good
   
   Target t = targets.get(trialIndex);
   startingAng = t.rotation;
   firstTouch = true;
+  
+  if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
+
   
   // Check to see if user clicked middle of screen
   if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
