@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 import java.util.Collections;
 
+import android.content.Context;
+import android.os.Vibrator;
+
 int index = 0;
 
 // Your input code should modify these!!
@@ -64,7 +67,12 @@ void setup() {
 }
 
 void draw() {
-  background(60);  // Background is dark grey
+  if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
+    background(169, 204, 174);
+  } else {
+    background(60);  // Background is dark grey
+  }
+  
   fill(200);
   noStroke();
 
@@ -93,6 +101,12 @@ void draw() {
 
   fill(255, 221, 70);  // Set color to yello
   rect(0, 0, t.z, t.z);
+  if (xyCloseEnough()) {
+    fill(105, 229, 124);
+  } else {
+    fill(255);
+  }
+  ellipse(0, 0, inchesToPixels(.05f), inchesToPixels(.05f));
 
   popMatrix();
 
@@ -106,13 +120,43 @@ void draw() {
 
   fill(255, 128);  // Set color to semi translucent
   rect(0, 0, screenZ, screenZ);
+  if (xyCloseEnough()) {
+    fill(105, 229, 124);
+  } else {
+    fill(127, 127);    
+  }
+  ellipse(0, 0, 2 * inchesToPixels(.05f), 2 * inchesToPixels(.05f));
 
   popMatrix();
+  
+  stroke(255);
+  strokeWeight(2);
+  line(width / 2 + t.x, height / 2 + t.y, width / 2, height / 2);
+  noStroke();
 
   scaffoldControlLogic();  // You are going to want to replace this!
 
   fill(255);
   text("Trial " + (trialIndex+1) + " of " +trialCount, width/2, inchesToPixels(.5f));
+}
+
+boolean xyCloseEnough() {
+  if (userDone) return false;
+  
+  Target t = targets.get(trialIndex); 
+  return dist(t.x, t.y, -screenTransX, -screenTransY) < inchesToPixels(.05f); 
+}
+
+boolean rotCloseEnough() {
+  if (userDone) return false;
+  Target t = targets.get(trialIndex); 
+  return calculateDifferenceBetweenAngles(t.rotation,screenRotation) <= 5; 
+}
+
+boolean sizeCloseEnough() {
+  if (userDone) return false;
+  Target t = targets.get(trialIndex); 
+  return abs(t.z - screenZ) < inchesToPixels(.05f); 
 }
 
 boolean translateOn = true;
@@ -207,6 +251,11 @@ void mouseDragged() {
   if (translateOn) {
     t.x += mouseX - pmouseX;
     t.y += mouseY - pmouseY;
+    
+    if (xyCloseEnough()) {
+      Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
+      v.vibrate(100);
+    }
   }
   
   // If scaling and within the corners of square, scale proportionally with mouse
@@ -226,8 +275,10 @@ void mouseDragged() {
       startingDiff = (float)calculateDifferenceBetweenAngles(startingAng, ang);
     }
     
+    System.out.println("-----------------------------");
+    System.out.println("TROT': " + t.rotation + " Ang: " + ang + " Starting: " + startingDiff + " Diff: " + calculateDifferenceBetweenAngles(startingAng, ang));
     popMatrix();
-    t.rotation = ang - startingDiff; 
+    t.rotation = ang - startingDiff; //(float)calculateDifferenceBetweenAngles(startingAng, ang) - startingDiff; 
   }
 }
 
