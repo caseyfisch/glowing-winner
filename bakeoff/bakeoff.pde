@@ -43,7 +43,7 @@ void setup() {
   size(400, 700);  // Set this, based on your sceen's PPI to be a 2x3.5" area.
 
   rectMode(CENTER);
-  textFont(createFont("Arial", inchesToPixels(.15f)));  // Sets the font to Arial that is .3" tall
+  textFont(createFont("Arial", inchesToPixels(.08f)));  // Sets the font to Arial that is .3" tall
   textAlign(CENTER);
 
   // Don't change this! 
@@ -261,6 +261,11 @@ void mouseDragged() {
   // If scaling and within the corners of square, scale proportionally with mouse
   if (scaleOn && overTarget && !overCircle) {
     t.z = constrain(2 * dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y), inchesToPixels(0.15f), inchesToPixels(3.9f)); 
+    
+    if (sizeCloseEnough()) {
+      Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
+      v.vibrate(100);
+    }
   }
   
   // If rotating, rotate as the mouse moves around square
@@ -279,6 +284,12 @@ void mouseDragged() {
     System.out.println("TROT': " + t.rotation + " Ang: " + ang + " Starting: " + startingDiff + " Diff: " + calculateDifferenceBetweenAngles(startingAng, ang));
     popMatrix();
     t.rotation = ang - startingDiff; //(float)calculateDifferenceBetweenAngles(startingAng, ang) - startingDiff; 
+    
+    if (rotCloseEnough()) {
+      Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
+      v.vibrate(100);
+    }
+    
   }
 }
 
