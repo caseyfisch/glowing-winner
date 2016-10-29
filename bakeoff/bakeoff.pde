@@ -32,11 +32,13 @@ private class Target {
 }
 
 ArrayList<Target> targets = new ArrayList<Target>();
-ArrayList<Float> originalRots = new ArrayList<Float>();
 
 float inchesToPixels(float inch) {
   return inch * screenPPI;
 }
+
+Vibrator v;
+long[] vibPattern = {0,300, 100};
 
 void setup() {
   // Size does not let you use variables, so you have to manually compute this
@@ -61,15 +63,15 @@ void setup() {
 
   Collections.shuffle(targets);  // Randomize the order of the button; don't change this.
   
-  for (Target t : targets) {
-    originalRots.add(t.rotation); 
-  }
+  v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 }
 
 void draw() {
   if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
     background(169, 204, 174);
+    v.vibrate(vibPattern, 0);
   } else {
+    v.cancel();
     background(60);  // Background is dark grey
   }
   
@@ -205,34 +207,60 @@ void scaffoldControlLogic() {
   }
   
   if (translateOn) {
-    fill(255);
+    if (xyCloseEnough()) {
+      fill(105, 229, 124);
+    } else {
+      fill(255); 
+    }
+    noStroke();
   } else {
-    stroke(255);
+    if (xyCloseEnough()) {
+      stroke(105, 229, 124);
+    } else {
+      stroke(255);
+    }
     strokeWeight(4);
-    fill(60);
+    fill(0, 0);
   }
   rect(inchesToPixels(0.25f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f));  
 
   if (rotateOn) {
-    fill(255);
+    if (rotCloseEnough()) {
+      fill(105, 229, 124);
+    } else {
+      fill(255); 
+    }
+    noStroke();
   } else {
-    stroke(255);
+    if (rotCloseEnough()) {
+      stroke(105, 229, 124);
+    } else {
+      stroke(255);
+    }
     strokeWeight(4);
-    fill(60);
+    fill(0, 0);
   }
   rect(inchesToPixels(0.85f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f)); 
   
   if (scaleOn) {
-    fill(255);
+    if (sizeCloseEnough()) {
+      fill(105, 229, 124);
+    } else {
+      fill(255); 
+    }
+    noStroke();
   } else {
-    stroke(255);
+    if (sizeCloseEnough()) {
+      stroke(105, 229, 124);
+    } else {
+      stroke(255);
+    }
     strokeWeight(4);
-    fill(60);
+    fill(0, 0);
   } 
   rect(inchesToPixels(1.45f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f));   
   
   noStroke();
-  
   fill(255);
 }
 
@@ -280,8 +308,8 @@ void mouseDragged() {
       startingDiff = (float)calculateDifferenceBetweenAngles(startingAng, ang);
     }
     
-    System.out.println("-----------------------------");
-    System.out.println("TROT': " + t.rotation + " Ang: " + ang + " Starting: " + startingDiff + " Diff: " + calculateDifferenceBetweenAngles(startingAng, ang));
+    //System.out.println("-----------------------------");
+    //System.out.println("TROT': " + t.rotation + " Ang: " + ang + " Starting: " + startingDiff + " Diff: " + calculateDifferenceBetweenAngles(startingAng, ang));
     popMatrix();
     t.rotation = ang - startingDiff; //(float)calculateDifferenceBetweenAngles(startingAng, ang) - startingDiff; 
     
@@ -296,12 +324,16 @@ void mouseDragged() {
 void mouseReleased() {
   if (userDone) return;
   
+  if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
+  
   Target t = targets.get(trialIndex);
   startingAng = t.rotation;
   firstTouch = true;
   
   // Check to see if user clicked middle of screen
   if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
+    v.cancel();
+    
     if (userDone == false && !checkForSuccess()) {
       errorCount++;
     }
