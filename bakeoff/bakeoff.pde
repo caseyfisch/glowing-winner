@@ -73,10 +73,14 @@ void draw() {
     // Once everything is aligned, phone vibrates until they move on to the next trial
     background(169, 204, 174);
     v.vibrate(vibPattern, 0);
+    fill(0, 255, 0);
   } else {
     v.cancel();
+    fill(60);
     background(60);  // Background is dark grey
   }
+  
+  ellipse(inchesToPixels(.5f)/2,inchesToPixels(.5f)/2,inchesToPixels(.5f)/2,inchesToPixels(.5f)/2);
   
   // This is just for printing some stuff only once (instead of as many times as draw is called)
   if (printOnce) {
@@ -321,13 +325,13 @@ void mouseDragged() {
     fill(255);
     stroke(157, 224, 103);
     strokeWeight(2 * inchesToPixels(.05f));
-    line(0, startingMouseY + diff, width, startingMouseY + diff);
+    line(0, startingMouseY + diff, width/2, startingMouseY + diff);
     System.out.println("Line at: " + startingMouseY + diff);
     
     // Draw line to show where the user is
     stroke(255);
     strokeWeight(1.2 * inchesToPixels(.05f));
-    line(0, mouseY, width, mouseY);
+    line(0, mouseY, width/2, mouseY);
     noStroke();
     
     if (sizeCloseEnough()) {
@@ -342,9 +346,9 @@ void mouseDragged() {
     strokeWeight(10);    
     
     if (calculateDifferenceBetweenAngles(startingRot + diff, screenRotation) < 5) {
-      line(0, startingMouseY - 2 * diff, width, startingMouseY - 2 * diff);
+      line(0, startingMouseY - 2 * diff, width/2, startingMouseY - 2 * diff);
     } else if (calculateDifferenceBetweenAngles(startingRot - diff, screenRotation) < 5) {
-      line(0, startingMouseY + 2 * diff, width, startingMouseY + 2 * diff);      
+      line(0, startingMouseY + 2 * diff, width/2, startingMouseY + 2 * diff);      
     }
     
     t.rotation = t.rotation + 0.5 * (startingY - mouseY); // multiplied by 0.5 to make the dragging
@@ -354,7 +358,7 @@ void mouseDragged() {
     // Draw line to show where the user currently is
     stroke(255);
     strokeWeight(5);
-    line(0, mouseY, width, mouseY);
+    line(0, mouseY, width/2, mouseY);
     noStroke();
         
     if (rotCloseEnough()) {  
