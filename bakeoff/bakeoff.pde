@@ -285,9 +285,6 @@ int startingMouseY = 0;
 int startingMouseX = 0;
 float diff = 0.0f;
 
-boolean rotNotSet = true;
-double angleDiff = 0.0f;
-
 void mousePressed() {
   if (userDone) return;
 
@@ -372,7 +369,6 @@ void mouseReleased() {
   startingAng = t.rotation;
   firstTouch = true;
   notSet = true;
-  rotNotSet = true;
   
   if (translateOn && xyCloseEnough()) {
     translateOn = false;
