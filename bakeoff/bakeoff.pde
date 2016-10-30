@@ -281,6 +281,7 @@ float touchAng = 0.0;
 
 boolean notSet = true;
 int startingY = 0;
+float startingRot = 0.0;
 int startingMouseY = 0;
 int startingMouseX = 0;
 float diff = 0.0f;
@@ -296,7 +297,12 @@ void mousePressed() {
     startingMouseX = mouseX;
     diff = t.z - screenZ;
     notSet = false;
-    System.out.println("Setting: " + startingMouseX + ", " + startingMouseY + ", " + t.z + ", " + diff);
+  } else if (notSet && rotateOn) {
+    startingMouseY = mouseY;
+    startingMouseX = mouseX;
+    startingRot = t.rotation;
+    diff = (float) calculateDifferenceBetweenAngles(t.rotation, screenRotation); 
+    notSet = false;
   }
 }
 
@@ -339,20 +345,23 @@ void mouseDragged() {
   
   // If rotating, rotate as the mouse moves around square
   if (rotateOn) {
-    pushMatrix();
-    translate(width / 2, height / 2);
-    float ang = degrees(atan2(mouseY - height / 2 - t.y, mouseX - width / 2 - t.x));
+    stroke(157, 224, 103);
+    strokeWeight(10);    
     
-    if (firstTouch) {
-      startingAng = t.rotation; 
-      firstTouch = false;
-      touchAng = ang;
+    if (calculateDifferenceBetweenAngles(startingRot + diff, screenRotation) < 5) {
+      line(0, startingMouseY - 2 * diff, width, startingMouseY - 2 * diff);
+    } else if (calculateDifferenceBetweenAngles(startingRot - diff, screenRotation) < 5) {
+      line(0, startingMouseY + 2 * diff, width, startingMouseY + 2 * diff);      
     }
     
-    t.rotation = startingAng + (ang - touchAng); 
+    t.rotation = t.rotation + 0.5 * (startingY - mouseY);
+    startingY = mouseY;
     
-    System.out.println(degrees(atan2(height / 2 - mouseY, width / 2 - mouseX)) + " , " + t.rotation);
-    
+    stroke(255);
+    strokeWeight(5);
+    line(0, mouseY, width, mouseY);
+    noStroke();
+        
     if (rotCloseEnough()) {  
       v.vibrate(100);
     }
@@ -444,22 +453,22 @@ void mouseReleased() {
 
 public boolean checkForSuccess() {
   Target t = targets.get(trialIndex);  
-  boolean closeDist = dist(t.x,t.y,-screenTransX,-screenTransY)<inchesToPixels(.05f);  // Has to be within .1"
-  boolean closeRotation = calculateDifferenceBetweenAngles(t.rotation,screenRotation)<=5;
-  boolean closeZ = abs(t.z - screenZ)<inchesToPixels(.05f);  // Has to be within .1"  
+  boolean closeDist = dist(t.x, t.y, -screenTransX, -screenTransY) < inchesToPixels(.05f);  // Has to be within .1"
+  boolean closeRotation = calculateDifferenceBetweenAngles(t.rotation,screenRotation) <= 5;
+  boolean closeZ = abs(t.z - screenZ) < inchesToPixels(.05f);  // Has to be within .1"  
   
   println("Close Enough Distance: " + closeDist);
-  println("Close Enough Rotation: " + closeRotation + "(dist="+calculateDifferenceBetweenAngles(t.rotation,screenRotation)+")");
+  println("Close Enough Rotation: " + closeRotation + "(dist=" + calculateDifferenceBetweenAngles(t.rotation, screenRotation) + ")");
   println("Close Enough Z: " + closeZ);
   
   return closeDist && closeRotation && closeZ;  
 }
 
 double calculateDifferenceBetweenAngles(float a1, float a2) {
-  double diff=abs(a1-a2);
+  double diff = abs(a1 - a2);
   diff %= 90;
-  if (diff>45)
-    return 90-diff;
+  if (diff > 45)
+    return 90 - diff;
   else
     return diff;
 }
