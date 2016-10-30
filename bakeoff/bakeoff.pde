@@ -83,13 +83,13 @@ void draw() {
     if (!userDone) {
       Target t = targets.get(trialIndex);
       System.out.println(t.x + " " + t.y + " " + t.z + " " + t.rotation);
-      printOnce = false;
     } else {
       System.out.println("User completed " + trialCount + " trials");
       System.out.println("User had " + errorCount + " error(s)");
       System.out.println("User took " + (finishTime - startTime) / 1000f / trialCount + " sec per target");
       System.out.println("User took " + ((finishTime - startTime) / 1000f / trialCount + (errorCount * errorPenalty)) + " sec per target inc. penalty");
     }
+    printOnce = false;
   }
   
   fill(200);
@@ -282,6 +282,9 @@ void mousePressed() {
     startingMouseX = mouseX;
     diff = t.z - screenZ;
     notSet = false;
+    
+    System.out.println("StartingMouseX: " + startingMouseX + ", StartingMouseY: " + startingMouseY);
+    System.out.println("ScreenZ: " + screenZ + ", Tz: " + t.z + ", DIFF: " + diff);
   } else if (notSet && rotateOn) {
     // Used to calculate the line that appears that the user should drag to to match the rotation
     startingMouseY = mouseY;
@@ -319,6 +322,7 @@ void mouseDragged() {
     stroke(157, 224, 103);
     strokeWeight(2 * inchesToPixels(.05f));
     line(0, startingMouseY + diff, width, startingMouseY + diff);
+    System.out.println("Line at: " + startingMouseY + diff);
     
     // Draw line to show where the user is
     stroke(255);
