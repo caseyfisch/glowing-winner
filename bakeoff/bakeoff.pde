@@ -279,9 +279,23 @@ boolean firstTouch = true;
 float startingAng = 0.0;
 float touchAng = 0.0;
 int startingY = 0;
+boolean notSet = true;
+int startingMouseY = 0;
+int startingMouseX = 0;
+float diff = 0.0f;
 
 void mousePressed() {
+  if (userDone) return;
+  
   startingY = mouseY; 
+  if (notSet) {
+    Target t = targets.get(trialIndex);
+    startingMouseY = mouseY;
+    startingMouseX = mouseX;
+    diff = t.z - screenZ;
+    notSet = false;
+    System.out.println("Setting: " + startingMouseX + ", " + startingMouseY + ", " + t.z + ", " + diff);
+  }
 }
 
 void mouseDragged() {
@@ -305,6 +319,17 @@ void mouseDragged() {
   if (scaleOn) {
     t.z = constrain(t.z + (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
     startingY = mouseY;
+    
+    fill(255);
+    stroke(157, 224, 103);
+    strokeWeight(2 * inchesToPixels(.05f));
+    line(0, startingMouseY + diff, width, startingMouseY + diff);
+    
+    stroke(255);
+    strokeWeight(1.2 * inchesToPixels(.05f));
+    line(0, mouseY, width, mouseY);
+    noStroke();
+    
     if (sizeCloseEnough()) {
       v.vibrate(100);
     }
@@ -340,6 +365,7 @@ void mouseReleased() {
   Target t = targets.get(trialIndex);
   startingAng = t.rotation;
   firstTouch = true;
+  notSet = true;
   
   if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
 
