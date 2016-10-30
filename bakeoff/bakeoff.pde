@@ -282,17 +282,14 @@ void mouseDragged() {
     t.y += mouseY - pmouseY;
     
     if (xyCloseEnough()) {
-      Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
       v.vibrate(100);
     }
   }
   
   // If scaling and within the corners of square, scale proportionally with mouse
   if (scaleOn && overTarget && !overCircle) {
-    t.z = constrain(2 * dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y), inchesToPixels(0.15f), inchesToPixels(3.9f)); 
-    
+    t.z = constrain(2 * (dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y) - 0), inchesToPixels(0.15f), inchesToPixels(3.0f)); 
     if (sizeCloseEnough()) {
-      Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
       v.vibrate(100);
     }
   }
@@ -312,8 +309,7 @@ void mouseDragged() {
     popMatrix();
     t.rotation = startingAng + (ang - touchAng);  
     
-    if (rotCloseEnough()) {
-      Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);  
+    if (rotCloseEnough()) {  
       v.vibrate(100);
     }
     
