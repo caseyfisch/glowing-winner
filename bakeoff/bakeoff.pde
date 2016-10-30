@@ -12,7 +12,7 @@ float screenTransY = 0;
 float screenRotation = 0;
 float screenZ = 200f;
 
-int trialCount = 4;         // This will be set higher for the bakeoff
+int trialCount = 20;         // This will be set higher for the bakeoff
 float border = 0;           // Have some padding from the sides
 int trialIndex = 0;         // What trial are we on
 int errorCount = 0;         // Used to keep track of errors
@@ -66,6 +66,8 @@ void setup() {
   v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 }
 
+boolean printOnce = true;
+
 void draw() {
   if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
     background(169, 204, 174);
@@ -73,6 +75,14 @@ void draw() {
   } else {
     v.cancel();
     background(60);  // Background is dark grey
+  }
+  
+  if (printOnce) {
+    if (!userDone) {
+      Target t = targets.get(trialIndex);
+      System.out.println(t.x + " " + t.y + " " + t.z + " " + t.rotation);
+      printOnce = false;
+    }
   }
   
   fill(200);
@@ -101,7 +111,7 @@ void draw() {
 
   rotate(radians(t.rotation));
 
-  fill(255, 221, 70);  // Set color to yello
+  fill(255, 221, 70);  // Set color to yellow
   rect(0, 0, t.z, t.z);
   if (xyCloseEnough()) {
     fill(105, 229, 124);
@@ -167,6 +177,7 @@ boolean scaleOn = false;
 boolean overTarget = false, overCircle = false;
 
 void scaffoldControlLogic() {
+  
   
   Target t = targets.get(trialIndex);
   
@@ -267,16 +278,20 @@ void scaffoldControlLogic() {
 boolean firstTouch = true;
 float startingAng = 0.0;
 float touchAng = 0.0;
-float startingDiff = 0.0;
+int startingY = 0;
+
+void mousePressed() {
+  startingY = mouseY; 
+}
 
 void mouseDragged() {
   if (userDone) return;
-  
+  if (mouseY > height - inchesToPixels(0.5f)) return;
+  if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) return;
+
   Target t = targets.get(trialIndex);
   
-  if (mouseY > height - inchesToPixels(0.5f)) return;
-  
-  // If translating, just move relative to the mousex and mousey
+  // If translating, just move relative to the mouseX and mouseY
   if (translateOn) {
     t.x += mouseX - pmouseX;
     t.y += mouseY - pmouseY;
@@ -286,9 +301,10 @@ void mouseDragged() {
     }
   }
   
-  // If scaling and within the corners of square, scale proportionally with mouse
-  if (scaleOn && overTarget && !overCircle) {
-    t.z = constrain(2 * (dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y) - 0), inchesToPixels(0.15f), inchesToPixels(3.0f)); 
+  // If scaling, scale linearly with mouseY 
+  if (scaleOn) {
+    t.z = constrain(t.z + (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
+    startingY = mouseY;
     if (sizeCloseEnough()) {
       v.vibrate(100);
     }
@@ -347,6 +363,8 @@ void mouseReleased() {
     translateOn = true;
     rotateOn = false;
     scaleOn = false;
+    
+    printOnce = true;
 
     if (trialIndex == trialCount && userDone == false) {
       userDone = true;
