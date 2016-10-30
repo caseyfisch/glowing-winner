@@ -182,25 +182,25 @@ void scaffoldControlLogic() {
   Target t = targets.get(trialIndex);
   
   // Control which mode is toggled on
-  if (mousePressed & inchesToPixels(.1f) <= mouseX && mouseX <= inchesToPixels(0.5) 
-    && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
-    translateOn = true;
-    rotateOn = false;
-    scaleOn = false;
-  } else if (mousePressed & inchesToPixels(.6f) <= mouseX && mouseX <= inchesToPixels(1.1) 
-    && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
-    translateOn = false;
-    rotateOn = true;
-    scaleOn = false;
+  //if (mousePressed & inchesToPixels(.1f) <= mouseX && mouseX <= inchesToPixels(0.5) 
+  //  && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
+  //  translateOn = true;
+  //  rotateOn = false;
+  //  scaleOn = false;
+  //} else if (mousePressed & inchesToPixels(.6f) <= mouseX && mouseX <= inchesToPixels(1.1) 
+  //  && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
+  //  translateOn = false;
+  //  rotateOn = true;
+  //  scaleOn = false;
     
-    startingAng = t.rotation;
-    firstTouch = true;
-  } else if (mousePressed & inchesToPixels(1.2f) <= mouseX && mouseX <= inchesToPixels(1.7) 
-    && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
-    translateOn = false;
-    rotateOn = false;
-    scaleOn = true;
-  }
+  //  startingAng = t.rotation;
+  //  firstTouch = true;
+  //} else if (mousePressed & inchesToPixels(1.2f) <= mouseX && mouseX <= inchesToPixels(1.7) 
+  //  && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
+  //  translateOn = false;
+  //  rotateOn = false;
+  //  scaleOn = true;
+  //}
   
   // If we're scaling, detect where the mouse has grabbed the corner
   if (scaleOn) {
@@ -233,7 +233,7 @@ void scaffoldControlLogic() {
     strokeWeight(4);
     fill(0, 0);
   }
-  rect(inchesToPixels(0.25f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f));  
+  ellipse(width / 2 - 2 * inchesToPixels(0.25f), height - inchesToPixels(0.25f), inchesToPixels(0.25f), inchesToPixels(0.25f));  
 
   if (rotateOn) {
     if (rotCloseEnough()) {
@@ -251,7 +251,7 @@ void scaffoldControlLogic() {
     strokeWeight(4);
     fill(0, 0);
   }
-  rect(inchesToPixels(0.85f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f)); 
+  ellipse(width / 2, height - inchesToPixels(0.25f), inchesToPixels(0.25f), inchesToPixels(0.25f)); 
   
   if (scaleOn) {
     if (sizeCloseEnough()) {
@@ -269,7 +269,7 @@ void scaffoldControlLogic() {
     strokeWeight(4);
     fill(0, 0);
   } 
-  rect(inchesToPixels(1.45f), height - inchesToPixels(0.25f), inchesToPixels(0.5f), inchesToPixels(0.5f));   
+  ellipse(width / 2 + 2 * inchesToPixels(0.25f), height - inchesToPixels(0.25f), inchesToPixels(0.25f), inchesToPixels(0.25f));   
   
   noStroke();
   fill(255);
@@ -285,6 +285,7 @@ float startingRot = 0.0;
 int startingMouseY = 0;
 int startingMouseX = 0;
 float diff = 0.0f;
+
 
 void mousePressed() {
   if (userDone) return;
@@ -308,7 +309,7 @@ void mousePressed() {
 
 void mouseDragged() {
   if (userDone) return;
-  if (mouseY > height - inchesToPixels(0.5f)) return;
+  //if (mouseY > height - inchesToPixels(0.5f)) return;
   if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) return;
 
   Target t = targets.get(trialIndex);
@@ -317,7 +318,7 @@ void mouseDragged() {
   if (translateOn) {
     t.x += mouseX - pmouseX;
     t.y += mouseY - pmouseY;
-    
+
     if (xyCloseEnough()) {
       v.vibrate(100);
     }
