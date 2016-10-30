@@ -70,6 +70,7 @@ boolean printOnce = true;
 
 void draw() {
   if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
+    // Once everything is aligned, phone vibrates until they move on to the next trial
     background(169, 204, 174);
     v.vibrate(vibPattern, 0);
   } else {
@@ -77,11 +78,17 @@ void draw() {
     background(60);  // Background is dark grey
   }
   
+  // This is just for printing some stuff only once (instead of as many times as draw is called)
   if (printOnce) {
     if (!userDone) {
       Target t = targets.get(trialIndex);
       System.out.println(t.x + " " + t.y + " " + t.z + " " + t.rotation);
       printOnce = false;
+    } else {
+      System.out.println("User completed " + trialCount + " trials");
+      System.out.println("User had " + errorCount + " error(s)");
+      System.out.println("User took " + (finishTime - startTime) / 1000f / trialCount + " sec per target");
+      System.out.println("User took " + ((finishTime - startTime) / 1000f / trialCount + (errorCount * errorPenalty)) + " sec per target inc. penalty");
     }
   }
   
@@ -111,6 +118,7 @@ void draw() {
 
   rotate(radians(t.rotation));
 
+  // This draws the square and the alignment circle in the center of the target square
   fill(255, 221, 70);  // Set color to yellow
   rect(0, 0, t.z, t.z);
   if (xyCloseEnough()) {
@@ -130,6 +138,7 @@ void draw() {
   //custom shifts:
   //translate(screenTransX,screenTransY);  // Center the drawing coordinates to the center of the screen
 
+  // This draws the square and the alignment circle in the center
   fill(255, 128);  // Set color to semi translucent
   rect(0, 0, screenZ, screenZ);
   if (xyCloseEnough()) {
@@ -141,6 +150,7 @@ void draw() {
 
   popMatrix();
   
+  // This draws the line between the centers of the squares
   stroke(255);
   strokeWeight(2);
   line(width / 2 + t.x, height / 2 + t.y, width / 2, height / 2);
@@ -152,6 +162,7 @@ void draw() {
   text("Trial " + (trialIndex+1) + " of " +trialCount, width/2, inchesToPixels(.5f));
 }
 
+// Returns if the xy position is close enough to pass
 boolean xyCloseEnough() {
   if (userDone) return false;
   
@@ -159,63 +170,29 @@ boolean xyCloseEnough() {
   return dist(t.x, t.y, -screenTransX, -screenTransY) < inchesToPixels(.05f); 
 }
 
+// Returns if the rotation is close enough to pass
 boolean rotCloseEnough() {
   if (userDone) return false;
   Target t = targets.get(trialIndex); 
   return calculateDifferenceBetweenAngles(t.rotation,screenRotation) <= 5; 
 }
 
+// Returns if the size is close enough to pass
 boolean sizeCloseEnough() {
   if (userDone) return false;
   Target t = targets.get(trialIndex); 
   return abs(t.z - screenZ) < inchesToPixels(.05f); 
 }
 
+// Variables that control which mode is active
 boolean translateOn = true;
 boolean rotateOn = false;
 boolean scaleOn = false;
-boolean overTarget = false, overCircle = false;
 
-void scaffoldControlLogic() {
-  
-  
-  Target t = targets.get(trialIndex);
-  
-  // Control which mode is toggled on
-  //if (mousePressed & inchesToPixels(.1f) <= mouseX && mouseX <= inchesToPixels(0.5) 
-  //  && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
-  //  translateOn = true;
-  //  rotateOn = false;
-  //  scaleOn = false;
-  //} else if (mousePressed & inchesToPixels(.6f) <= mouseX && mouseX <= inchesToPixels(1.1) 
-  //  && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
-  //  translateOn = false;
-  //  rotateOn = true;
-  //  scaleOn = false;
-    
-  //  startingAng = t.rotation;
-  //  firstTouch = true;
-  //} else if (mousePressed & inchesToPixels(1.2f) <= mouseX && mouseX <= inchesToPixels(1.7) 
-  //  && height - inchesToPixels(0.5f) <= mouseY && mouseY <= height - inchesToPixels(0.1f)) {
-  //  translateOn = false;
-  //  rotateOn = false;
-  //  scaleOn = true;
-  //}
-  
-  // If we're scaling, detect where the mouse has grabbed the corner
-  if (scaleOn) {
-    if (dist(mouseX, mouseY, width / 2 + t.x, height / 2 + t.y) < t.z / 2) {
-      overCircle = true;
-      overTarget = true;
-    } else if (width / 2 + t.x - t.z / 2 <= mouseX && mouseX <= width / 2 + t.x + t.z / 2 &&
-              height / 2 + t.y - t.z / 2 <= mouseY && mouseY <= height / 2 + t.z + t.x / 2) {
-      overCircle = false;
-      overTarget = true;
-    } else {
-      overCircle = false;
-      overTarget = false;
-    } 
-  }
+void scaffoldControlLogic() {  
+  // The following code is really repetitive but it basically just draws the circles at the bottom of the
+  // screen.  There is only one 'filled' square at a time, indicates the current degree being changed.  
+  // Green (outline or fill) means that degree is good to go!
   
   if (translateOn) {
     if (xyCloseEnough()) {
@@ -275,6 +252,8 @@ void scaffoldControlLogic() {
   fill(255);
 }
 
+// These variables are used for scaling and rotating relative to the mouse position from when they touch the
+// screen.  
 boolean firstTouch = true;
 float startingAng = 0.0;
 float touchAng = 0.0;
@@ -288,17 +267,23 @@ float diff = 0.0f;
 
 
 void mousePressed() {
-  if (userDone) return;
+  if (userDone) return; // if the user touches the screen after they're done, the code will crash 
+  // from an out of bounds exception in the below statement, so that's why this appears throughout.
 
   Target t = targets.get(trialIndex);
   
+  // startingY is used for scaling
   startingY = mouseY; 
+  
+  // We only want to grab these values when the mouse is pressed (and not continuously while it's dragging).
   if (notSet && scaleOn) {
+    // Used to calculate the line that appears that the user should drag to to match the size
     startingMouseY = mouseY;
     startingMouseX = mouseX;
     diff = t.z - screenZ;
     notSet = false;
   } else if (notSet && rotateOn) {
+    // Used to calculate the line that appears that the user should drag to to match the rotation
     startingMouseY = mouseY;
     startingMouseX = mouseX;
     startingRot = t.rotation;
@@ -309,8 +294,8 @@ void mousePressed() {
 
 void mouseDragged() {
   if (userDone) return;
-  //if (mouseY > height - inchesToPixels(0.5f)) return;
-  if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) return;
+  if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) return; // Super secret submit button
+  // ^^ I haven't decided where the best place is to put this.
 
   Target t = targets.get(trialIndex);
   
@@ -329,11 +314,13 @@ void mouseDragged() {
     t.z = constrain(t.z + (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
     startingY = mouseY;
     
+    // Draw line to show user where to drag to
     fill(255);
     stroke(157, 224, 103);
     strokeWeight(2 * inchesToPixels(.05f));
     line(0, startingMouseY + diff, width, startingMouseY + diff);
     
+    // Draw line to show where the user is
     stroke(255);
     strokeWeight(1.2 * inchesToPixels(.05f));
     line(0, mouseY, width, mouseY);
@@ -346,6 +333,7 @@ void mouseDragged() {
   
   // If rotating, rotate as the mouse moves around square
   if (rotateOn) {
+    // Draw line to show user where to drag to
     stroke(157, 224, 103);
     strokeWeight(10);    
     
@@ -355,9 +343,11 @@ void mouseDragged() {
       line(0, startingMouseY + 2 * diff, width, startingMouseY + 2 * diff);      
     }
     
-    t.rotation = t.rotation + 0.5 * (startingY - mouseY);
-    startingY = mouseY;
+    t.rotation = t.rotation + 0.5 * (startingY - mouseY); // multiplied by 0.5 to make the dragging
+    // less sensitive (instead of 1 pixel = 1 degree, it's 2 pixels = 1 degree).
+    startingY = mouseY; 
     
+    // Draw line to show where the user currently is
     stroke(255);
     strokeWeight(5);
     line(0, mouseY, width, mouseY);
@@ -366,20 +356,21 @@ void mouseDragged() {
     if (rotCloseEnough()) {  
       v.vibrate(100);
     }
-    
   }
 }
 
 void mouseReleased() {
   if (userDone) return;
-  
-  // Can't submit unless all values are good
-  
+   
   Target t = targets.get(trialIndex);
+  // On release, need to reset stuff based on mouse pressing and dragging
   startingAng = t.rotation;
   firstTouch = true;
   notSet = true;
   
+  // This ugly conditional just cycles through the different degrees.  We move on to the next degree
+  // when the user lifts their finger and the value is within range.  If it's not within range, we stay
+  // in the current mode.
   if (translateOn && xyCloseEnough()) {
     translateOn = false;
     if (!rotCloseEnough()) {
@@ -420,10 +411,10 @@ void mouseReleased() {
     }
   }
   
+  // Can't submit unless all values are good
   if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
 
-  
-  // Check to see if user clicked middle of screen
+  // Check to see if user clicked corner of screen to submit
   if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
     v.cancel();
     
@@ -452,6 +443,8 @@ void mouseReleased() {
   }
 }
 
+
+// I (Casey) didn't change anything in this function
 public boolean checkForSuccess() {
   Target t = targets.get(trialIndex);  
   boolean closeDist = dist(t.x, t.y, -screenTransX, -screenTransY) < inchesToPixels(.05f);  // Has to be within .1"
