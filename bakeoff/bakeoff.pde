@@ -278,18 +278,23 @@ void scaffoldControlLogic() {
 boolean firstTouch = true;
 float startingAng = 0.0;
 float touchAng = 0.0;
-int startingY = 0;
+
 boolean notSet = true;
+int startingY = 0;
 int startingMouseY = 0;
 int startingMouseX = 0;
 float diff = 0.0f;
 
+boolean rotNotSet = true;
+double angleDiff = 0.0f;
+
 void mousePressed() {
   if (userDone) return;
+
+  Target t = targets.get(trialIndex);
   
   startingY = mouseY; 
-  if (notSet) {
-    Target t = targets.get(trialIndex);
+  if (notSet && scaleOn) {
     startingMouseY = mouseY;
     startingMouseX = mouseX;
     diff = t.z - screenZ;
@@ -347,8 +352,9 @@ void mouseDragged() {
       touchAng = ang;
     }
     
-    popMatrix();
-    t.rotation = startingAng + (ang - touchAng);  
+    t.rotation = startingAng + (ang - touchAng); 
+    
+    System.out.println(degrees(atan2(height / 2 - mouseY, width / 2 - mouseX)) + " , " + t.rotation);
     
     if (rotCloseEnough()) {  
       v.vibrate(100);
@@ -366,6 +372,47 @@ void mouseReleased() {
   startingAng = t.rotation;
   firstTouch = true;
   notSet = true;
+  rotNotSet = true;
+  
+  if (translateOn && xyCloseEnough()) {
+    translateOn = false;
+    if (!rotCloseEnough()) {
+      rotateOn = true;
+      scaleOn = false;
+    } else if (!sizeCloseEnough()) {
+      scaleOn = true;
+      rotateOn = false;
+    } else {
+      scaleOn = false;
+      rotateOn = false;
+    }
+  } else if (rotateOn && rotCloseEnough()) {
+    translateOn = false;
+    if (!sizeCloseEnough()) {
+      scaleOn = true;
+      rotateOn = false;
+    } else if (!xyCloseEnough()) {
+      translateOn = true;
+      rotateOn = false;
+      scaleOn = false;
+    } else {
+      scaleOn = false;
+      rotateOn= false;
+      translateOn = false;
+    }
+  } else if (scaleOn && sizeCloseEnough()) {
+    scaleOn = false;
+    if (!xyCloseEnough()) {
+      translateOn = true;
+      rotateOn = false;
+    } else if (!rotCloseEnough()) {
+      rotateOn = true;
+      translateOn = false;
+    } else {
+      rotateOn = false;
+      translateOn = false;
+    }
+  }
   
   if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
 
