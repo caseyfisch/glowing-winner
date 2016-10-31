@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 import java.util.Collections;
 
-import android.content.Context;
-import android.os.Vibrator;
+//import android.content.Context;
+//import android.os.Vibrator;
 
 int index = 0;
 
@@ -12,7 +12,7 @@ float screenTransY = 0;
 float screenRotation = 0;
 float screenZ = 200f;
 
-int trialCount = 20;         // This will be set higher for the bakeoff
+int trialCount = 20;        // This will be set higher for the bakeoff
 float border = 0;           // Have some padding from the sides
 int trialIndex = 0;         // What trial are we on
 int errorCount = 0;         // Used to keep track of errors
@@ -37,8 +37,8 @@ float inchesToPixels(float inch) {
   return inch * screenPPI;
 }
 
-Vibrator v;
-long[] vibPattern = {0,300, 100};
+//Vibrator v;
+//long[] vibPattern = {0,300, 100};
 
 void setup() {
   // Size does not let you use variables, so you have to manually compute this
@@ -53,17 +53,17 @@ void setup() {
 
   for (int i = 0; i < trialCount; i++) {  // Don't change this! 
     Target t = new Target();
-    t.x = random(- width / 2 + border, width / 2 - border);    // Set a random x with some padding
-    t.y = random(- height / 2 + border, height / 2 - border);  // Set a random y with some padding
-    t.rotation = random(0, 360);                               // Random rotation between 0 and 360
-    t.z = ((i % 20) + 1)*inchesToPixels(.15f);                 // Increasing size from .15 up to 3.0"
+    t.x = random(-width / 2 + border, width / 2 - border);    // Set a random x with some padding
+    t.y = random(-height / 2 + border, height / 2 - border);  // Set a random y with some padding
+    t.rotation = random(0, 360);                              // Random rotation between 0 and 360
+    t.z = ((i % 20) + 1) * inchesToPixels(.15f);              // Increasing size from .15 up to 3.0"
     targets.add(t);
     println("created target with " + t.x + "," + t.y + "," + t.rotation + "," + t.z);
   }
 
   Collections.shuffle(targets);  // Randomize the order of the button; don't change this.
   
-  v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+  //v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 }
 
 boolean printOnce = true;
@@ -72,10 +72,10 @@ void draw() {
   if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
     // Once everything is aligned, phone vibrates until they move on to the next trial
     background(169, 204, 174);
-    v.vibrate(vibPattern, 0);
+    //v.vibrate(vibPattern, 0);
     fill(0, 255, 0);
   } else {
-    v.cancel();
+    //v.cancel();
     fill(60);
     background(60);  // Background is dark grey
   }
@@ -312,20 +312,20 @@ void mouseDragged() {
     t.y += mouseY - pmouseY;
 
     if (xyCloseEnough()) {
-      v.vibrate(100);
+      //v.vibrate(100);
     }
   }
   
   // If scaling, scale linearly with mouseY 
   if (scaleOn) {
-    t.z = constrain(t.z + (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
+    t.z = constrain(t.z + 2* (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
     startingY = mouseY;
     
     // Draw line to show user where to drag to
     fill(255);
     stroke(157, 224, 103);
     strokeWeight(2 * inchesToPixels(.05f));
-    line(0, startingMouseY + diff, width/2, startingMouseY + diff);
+    line(0, startingMouseY + 0.5 * diff, width/2, startingMouseY + 0.5 * diff);
     System.out.println("Line at: " + startingMouseY + diff);
     
     // Draw line to show where the user is
@@ -335,7 +335,7 @@ void mouseDragged() {
     noStroke();
     
     if (sizeCloseEnough()) {
-      v.vibrate(100);
+      //v.vibrate(100);
     }
   }
   
@@ -362,7 +362,7 @@ void mouseDragged() {
     noStroke();
         
     if (rotCloseEnough()) {  
-      v.vibrate(100);
+      //v.vibrate(100);
     }
   }
 }
@@ -424,7 +424,7 @@ void mouseReleased() {
 
   // Check to see if user clicked corner of screen to submit
   if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
-    v.cancel();
+    //v.cancel();
     
     if (userDone == false && !checkForSuccess()) {
       errorCount++;
