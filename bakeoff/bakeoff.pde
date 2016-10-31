@@ -48,42 +48,60 @@ void setup() {
   textFont(createFont("Arial", inchesToPixels(.08f)));  // Sets the font to Arial that is .3" tall
   textAlign(CENTER);
 
-  // Don't change this! 
-  border = inchesToPixels(.2f);  // Padding of 0.2 inches
+  //don't change this! 
+  border = inchesToPixels(.2f); //padding of 0.2 inches
 
-  for (int i = 0; i < trialCount; i++) {  // Don't change this! 
+  for (int i=0; i<trialCount; i++) //don't change this! 
+  {
     Target t = new Target();
-    t.x = random(-width / 2 + border, width / 2 - border);    // Set a random x with some padding
-    t.y = random(-height / 2 + border, height / 2 - border);  // Set a random y with some padding
-    t.rotation = random(0, 360);                              // Random rotation between 0 and 360
-    t.z = ((i % 20) + 1) * inchesToPixels(.15f);              // Increasing size from .15 up to 3.0"
+    t.x = random(-width/2+border, width/2-border); //set a random x with some padding
+    t.y = random(-height/2+border, height/2-border); //set a random y with some padding
+    t.rotation = random(0, 360); //random rotation between 0 and 360
+    t.z = ((i%20)+1)*inchesToPixels(.15f); //increasing size from .15 up to 3.0"
     targets.add(t);
     println("created target with " + t.x + "," + t.y + "," + t.rotation + "," + t.z);
   }
 
-  Collections.shuffle(targets);  // Randomize the order of the button; don't change this.
-  
+  Collections.shuffle(targets); // randomize the order of the button; don't change this.
   //v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
   
   sliderX = 0;
   sliderY = height / 2;
+  
+  submitSize = inchesToPixels(.2f) / 2;
+  submitX = inchesToPixels(.2f) / 2;
+  submitY = inchesToPixels(.2f) / 2;
 }
 
 boolean printOnce = true;
 
+float submitSize;
+float submitX, submitY;
+
 void draw() {
+
   if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
     // Once everything is aligned, phone vibrates until they move on to the next trial
     background(169, 204, 174);
     //v.vibrate(vibPattern, 0);
     fill(0, 255, 0);
+    
+    submitSize = inchesToPixels(.5f);
+    submitX = inchesToPixels(.5f) ;
+    submitY = inchesToPixels(.5f) ;
+
   } else {
     //v.cancel();
-    fill(60);
+    fill(80);
     background(60);  // Background is dark grey
+    submitSize = inchesToPixels(.2f) / 2;
+    submitX = inchesToPixels(.2f) / 2;
+    submitY = inchesToPixels(.2f) / 2;
   }
-  
-  ellipse(inchesToPixels(.5f)/2,inchesToPixels(.5f)/2,inchesToPixels(.5f)/2,inchesToPixels(.5f)/2);
+
+  if (!userDone) {
+    ellipse(submitX, submitY, submitSize, submitSize);
+  }
   
   // This is just for printing some stuff only once (instead of as many times as draw is called)
   if (printOnce) {
@@ -277,7 +295,7 @@ void scaffoldControlLogic() {
         
     stroke(255);
     strokeWeight(inchesToPixels(.05f));
-    line(sliderX, sliderY, sliderX + width / 2, sliderY);
+    line(0, sliderY, width / 2, sliderY);
     
     noStroke();
   } else if (rotateOn) {
@@ -291,14 +309,14 @@ void scaffoldControlLogic() {
     strokeWeight(10); 
     
     if (calculateDifferenceBetweenAngles(startingRot + angleDiff, screenRotation) < 5) {
-      line(0, height / 2 - 2 * angleDiff, width/2, height / 2 - 2 * angleDiff);
+      line(0, height / 2 - 2 * angleDiff, width / 2, height / 2 - 2 * angleDiff);
     } else if (calculateDifferenceBetweenAngles(startingRot - angleDiff, screenRotation) < 5) {
-      line(0, height / 2 + 2 * angleDiff, width/2, height / 2 + 2 * angleDiff);      
+      line(0, height / 2 + 2 * angleDiff, width / 2, height / 2 + 2 * angleDiff);      
     }
     
     stroke(255);
     strokeWeight(5);
-    line(sliderX, sliderY, sliderX + width / 2, sliderY);
+    line(0, sliderY, width / 2, sliderY);
     noStroke();
   }
 }
@@ -377,12 +395,6 @@ void mouseDragged() {
     t.rotation = t.rotation + 0.5 * (startingY - mouseY); // multiplied by 0.5 to make the dragging
     // less sensitive (instead of 1 pixel = 1 degree, it's 2 pixels = 1 degree).
     startingY = mouseY; 
-    
-    // Draw line to show where the user currently is
-    //stroke(255);
-    //strokeWeight(5);
-    //line(0, mouseY, width/2, mouseY);
-    //noStroke();
         
     if (rotCloseEnough()) {  
       //v.vibrate(100);
@@ -449,10 +461,10 @@ void mouseReleased() {
   }
   
   // Can't submit unless all values are good
-  if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
+  //if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
 
   // Check to see if user clicked corner of screen to submit
-  if (dist(0, 0, mouseX, mouseY) < inchesToPixels(.5f)) {
+  if (dist(submitX, submitY, mouseX, mouseY) < submitSize / 2) {
     //v.cancel();
     
     if (userDone == false && !checkForSuccess()) {
@@ -475,6 +487,9 @@ void mouseReleased() {
     sliderX = 0;
     sliderY = height / 2;
     diffSet = false;
+    submitSize = inchesToPixels(.2f) / 2;
+    submitX = inchesToPixels(.2f) / 2;
+    submitY = inchesToPixels(.2f) / 2;
 
     if (trialIndex == trialCount && userDone == false) {
       userDone = true;
