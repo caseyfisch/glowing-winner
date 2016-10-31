@@ -10,7 +10,7 @@ int index = 0;
 float screenTransX = 0;
 float screenTransY = 0;
 float screenRotation = 0;
-float screenZ = 200f;
+float screenZ = 10 * inchesToPixels(0.15f);
 
 int trialCount = 20;        // This will be set higher for the bakeoff
 float border = 0;           // Have some padding from the sides
@@ -64,6 +64,9 @@ void setup() {
   Collections.shuffle(targets);  // Randomize the order of the button; don't change this.
   
   //v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+  
+  sliderX = 0;
+  sliderY = height / 2;
 }
 
 boolean printOnce = true;
@@ -254,6 +257,26 @@ void scaffoldControlLogic() {
   
   noStroke();
   fill(255);
+  
+  if (scaleOn) {
+    if (!diffSet) {
+      Target t = targets.get(trialIndex);
+      scaleDiff = t.z - screenZ;
+      diffSet = true;
+      System.out.println("Height / 2 = " + (height / 2) + ", Line @ " + (height / 2 - scaleDiff));
+    }
+    
+    stroke(255);
+    strokeWeight(10);
+    line(sliderX, sliderY, sliderX + width / 2, sliderY);
+    
+    stroke(123,123,123);
+    line(0, height / 2 - scaleDiff, width / 2, height / 2 - scaleDiff);
+    
+    noStroke();
+    
+    
+  }
 }
 
 // These variables are used for scaling and rotating relative to the mouse position from when they touch the
@@ -267,7 +290,11 @@ int startingY = 0;
 float startingRot = 0.0;
 int startingMouseY = 0;
 int startingMouseX = 0;
-float diff = 0.0f;
+float scaleDiff = 0.0f;
+float angleDiff = 0.0f;
+boolean diffSet = false;
+
+float sliderX, sliderY;
 
 
 void mousePressed() {
@@ -282,19 +309,25 @@ void mousePressed() {
   // We only want to grab these values when the mouse is pressed (and not continuously while it's dragging).
   if (notSet && scaleOn) {
     // Used to calculate the line that appears that the user should drag to to match the size
-    startingMouseY = mouseY;
-    startingMouseX = mouseX;
-    diff = t.z - screenZ;
-    notSet = false;
+    //startingMouseY = mouseY;
+    //startingMouseX = mouseX;
+    //diff = t.z - screenZ;
+    //notSet = false;
     
     System.out.println("StartingMouseX: " + startingMouseX + ", StartingMouseY: " + startingMouseY);
-    System.out.println("ScreenZ: " + screenZ + ", Tz: " + t.z + ", DIFF: " + diff);
+    System.out.println("ScreenZ: " + screenZ + ", Tz: " + t.z + ", DIFF: " + scaleDiff);
+    
+    startingMouseY = mouseY;
+    startingMouseX = mouseX;
+    //diff = screenZ - t.z;
+    
+    notSet = false;
   } else if (notSet && rotateOn) {
     // Used to calculate the line that appears that the user should drag to to match the rotation
     startingMouseY = mouseY;
     startingMouseX = mouseX;
     startingRot = t.rotation;
-    diff = (float) calculateDifferenceBetweenAngles(t.rotation, screenRotation); 
+    angleDiff = (float) calculateDifferenceBetweenAngles(t.rotation, screenRotation); 
     notSet = false;
   }
 }
@@ -318,21 +351,25 @@ void mouseDragged() {
   
   // If scaling, scale linearly with mouseY 
   if (scaleOn) {
-    t.z = constrain(t.z + 2* (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
+    //t.z = constrain(t.z + 2 * (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
+    //startingY = mouseY;
+    
+    sliderY = sliderY - (startingY - mouseY);
+    t.z = constrain(t.z - (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
     startingY = mouseY;
     
-    // Draw line to show user where to drag to
-    fill(255);
-    stroke(157, 224, 103);
-    strokeWeight(2 * inchesToPixels(.05f));
-    line(0, startingMouseY + 0.5 * diff, width/2, startingMouseY + 0.5 * diff);
-    System.out.println("Line at: " + startingMouseY + diff);
+    //// Draw line to show user where to drag to
+    //fill(255);
+    //stroke(157, 224, 103);
+    //strokeWeight(2 * inchesToPixels(.05f));
+    //line(0, startingMouseY + 0.5 * diff, width/2, startingMouseY + 0.5 * diff);
+    //System.out.println("Line at: " + (startingMouseY + 0.5 * diff));
     
-    // Draw line to show where the user is
-    stroke(255);
-    strokeWeight(1.2 * inchesToPixels(.05f));
-    line(0, mouseY, width/2, mouseY);
-    noStroke();
+    //// Draw line to show where the user is
+    //stroke(255);
+    //strokeWeight(1.2 * inchesToPixels(.05f));
+    //line(0, mouseY, width/2, mouseY);
+    //noStroke();
     
     if (sizeCloseEnough()) {
       //v.vibrate(100);
@@ -345,10 +382,10 @@ void mouseDragged() {
     stroke(157, 224, 103);
     strokeWeight(10);    
     
-    if (calculateDifferenceBetweenAngles(startingRot + diff, screenRotation) < 5) {
-      line(0, startingMouseY - 2 * diff, width/2, startingMouseY - 2 * diff);
-    } else if (calculateDifferenceBetweenAngles(startingRot - diff, screenRotation) < 5) {
-      line(0, startingMouseY + 2 * diff, width/2, startingMouseY + 2 * diff);      
+    if (calculateDifferenceBetweenAngles(startingRot + angleDiff, screenRotation) < 5) {
+      line(0, startingMouseY - 2 * angleDiff, width/2, startingMouseY - 2 * angleDiff);
+    } else if (calculateDifferenceBetweenAngles(startingRot - angleDiff, screenRotation) < 5) {
+      line(0, startingMouseY + 2 * angleDiff, width/2, startingMouseY + 2 * angleDiff);      
     }
     
     t.rotation = t.rotation + 0.5 * (startingY - mouseY); // multiplied by 0.5 to make the dragging
@@ -435,7 +472,7 @@ void mouseReleased() {
 
     screenTransX = 0;
     screenTransY = 0;
-    screenZ = 200f;
+    screenZ = 10 * inchesToPixels(0.15f);
     screenRotation = 0;
     
     translateOn = true;
@@ -443,6 +480,9 @@ void mouseReleased() {
     scaleOn = false;
     
     printOnce = true;
+    sliderX = 0;
+    sliderY = height / 2;
+    diffSet = false;
 
     if (trialIndex == trialCount && userDone == false) {
       userDone = true;
