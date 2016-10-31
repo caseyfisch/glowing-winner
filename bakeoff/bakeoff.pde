@@ -127,7 +127,13 @@ void draw() {
 
   // This draws the square and the alignment circle in the center of the target square
   fill(255, 221, 70);  // Set color to yellow
-  rect(0, 0, t.z, t.z);
+  if (t.z <= inchesToPixels(0.15f)) {
+    rect(0, 0, inchesToPixels(0.15f), inchesToPixels(0.15f));
+  } else if (t.z >= inchesToPixels(3.0f)) {
+    rect(0, 0, inchesToPixels(3.0f), inchesToPixels(3.0f));
+  } else {
+    rect(0, 0, t.z, t.z); 
+  }
   if (xyCloseEnough()) {
     fill(105, 229, 124);
   } else {
@@ -263,19 +269,37 @@ void scaffoldControlLogic() {
       Target t = targets.get(trialIndex);
       scaleDiff = t.z - screenZ;
       diffSet = true;
-      System.out.println("Height / 2 = " + (height / 2) + ", Line @ " + (height / 2 - scaleDiff));
+    }
+    
+    stroke(157, 224, 103);
+    strokeWeight(2 * inchesToPixels(.05f));
+    line(0, height / 2 - scaleDiff, width / 2, height / 2 - scaleDiff);
+        
+    stroke(255);
+    strokeWeight(inchesToPixels(.05f));
+    line(sliderX, sliderY, sliderX + width / 2, sliderY);
+    
+    noStroke();
+  } else if (rotateOn) {
+    if (!diffSet) {
+      Target t = targets.get(trialIndex);
+      startingRot = t.rotation;
+      angleDiff = (float) calculateDifferenceBetweenAngles(t.rotation, screenRotation);  
+      diffSet = true;
+    }
+    stroke(157, 224, 103);
+    strokeWeight(10); 
+    
+    if (calculateDifferenceBetweenAngles(startingRot + angleDiff, screenRotation) < 5) {
+      line(0, height / 2 - 2 * angleDiff, width/2, height / 2 - 2 * angleDiff);
+    } else if (calculateDifferenceBetweenAngles(startingRot - angleDiff, screenRotation) < 5) {
+      line(0, height / 2 + 2 * angleDiff, width/2, height / 2 + 2 * angleDiff);      
     }
     
     stroke(255);
-    strokeWeight(10);
+    strokeWeight(5);
     line(sliderX, sliderY, sliderX + width / 2, sliderY);
-    
-    stroke(123,123,123);
-    line(0, height / 2 - scaleDiff, width / 2, height / 2 - scaleDiff);
-    
     noStroke();
-    
-    
   }
 }
 
@@ -285,7 +309,7 @@ boolean firstTouch = true;
 float startingAng = 0.0;
 float touchAng = 0.0;
 
-boolean notSet = true;
+boolean setOnce = true;
 int startingY = 0;
 float startingRot = 0.0;
 int startingMouseY = 0;
@@ -307,29 +331,14 @@ void mousePressed() {
   startingY = mouseY; 
   
   // We only want to grab these values when the mouse is pressed (and not continuously while it's dragging).
-  if (notSet && scaleOn) {
+  if (setOnce) {
     // Used to calculate the line that appears that the user should drag to to match the size
-    //startingMouseY = mouseY;
-    //startingMouseX = mouseX;
-    //diff = t.z - screenZ;
-    //notSet = false;
-    
-    System.out.println("StartingMouseX: " + startingMouseX + ", StartingMouseY: " + startingMouseY);
-    System.out.println("ScreenZ: " + screenZ + ", Tz: " + t.z + ", DIFF: " + scaleDiff);
-    
+
     startingMouseY = mouseY;
     startingMouseX = mouseX;
-    //diff = screenZ - t.z;
-    
-    notSet = false;
-  } else if (notSet && rotateOn) {
-    // Used to calculate the line that appears that the user should drag to to match the rotation
-    startingMouseY = mouseY;
-    startingMouseX = mouseX;
-    startingRot = t.rotation;
-    angleDiff = (float) calculateDifferenceBetweenAngles(t.rotation, screenRotation); 
-    notSet = false;
-  }
+ 
+    setOnce = false;
+  } 
 }
 
 void mouseDragged() {
@@ -350,26 +359,10 @@ void mouseDragged() {
   }
   
   // If scaling, scale linearly with mouseY 
-  if (scaleOn) {
-    //t.z = constrain(t.z + 2 * (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
-    //startingY = mouseY;
-    
+  if (scaleOn) {  
     sliderY = sliderY - (startingY - mouseY);
-    t.z = constrain(t.z - (startingY - mouseY), inchesToPixels(0.15f), inchesToPixels(3.0f));
+    t.z = t.z - (startingY - mouseY);
     startingY = mouseY;
-    
-    //// Draw line to show user where to drag to
-    //fill(255);
-    //stroke(157, 224, 103);
-    //strokeWeight(2 * inchesToPixels(.05f));
-    //line(0, startingMouseY + 0.5 * diff, width/2, startingMouseY + 0.5 * diff);
-    //System.out.println("Line at: " + (startingMouseY + 0.5 * diff));
-    
-    //// Draw line to show where the user is
-    //stroke(255);
-    //strokeWeight(1.2 * inchesToPixels(.05f));
-    //line(0, mouseY, width/2, mouseY);
-    //noStroke();
     
     if (sizeCloseEnough()) {
       //v.vibrate(100);
@@ -378,25 +371,18 @@ void mouseDragged() {
   
   // If rotating, rotate as the mouse moves around square
   if (rotateOn) {
-    // Draw line to show user where to drag to
-    stroke(157, 224, 103);
-    strokeWeight(10);    
+       
     
-    if (calculateDifferenceBetweenAngles(startingRot + angleDiff, screenRotation) < 5) {
-      line(0, startingMouseY - 2 * angleDiff, width/2, startingMouseY - 2 * angleDiff);
-    } else if (calculateDifferenceBetweenAngles(startingRot - angleDiff, screenRotation) < 5) {
-      line(0, startingMouseY + 2 * angleDiff, width/2, startingMouseY + 2 * angleDiff);      
-    }
-    
+    sliderY = sliderY - (startingY - mouseY);
     t.rotation = t.rotation + 0.5 * (startingY - mouseY); // multiplied by 0.5 to make the dragging
     // less sensitive (instead of 1 pixel = 1 degree, it's 2 pixels = 1 degree).
     startingY = mouseY; 
     
     // Draw line to show where the user currently is
-    stroke(255);
-    strokeWeight(5);
-    line(0, mouseY, width/2, mouseY);
-    noStroke();
+    //stroke(255);
+    //strokeWeight(5);
+    //line(0, mouseY, width/2, mouseY);
+    //noStroke();
         
     if (rotCloseEnough()) {  
       //v.vibrate(100);
@@ -411,7 +397,7 @@ void mouseReleased() {
   // On release, need to reset stuff based on mouse pressing and dragging
   startingAng = t.rotation;
   firstTouch = true;
-  notSet = true;
+  setOnce = true;
   
   // This ugly conditional just cycles through the different degrees.  We move on to the next degree
   // when the user lifts their finger and the value is within range.  If it's not within range, we stay
@@ -429,6 +415,9 @@ void mouseReleased() {
       rotateOn = false;
     }
   } else if (rotateOn && rotCloseEnough()) {
+    sliderX = 0;
+    sliderY = height / 2;
+    diffSet = false;
     translateOn = false;
     if (!sizeCloseEnough()) {
       scaleOn = true;
@@ -443,7 +432,10 @@ void mouseReleased() {
       translateOn = false;
     }
   } else if (scaleOn && sizeCloseEnough()) {
+    sliderX = 0;
+    sliderY = height / 2;
     scaleOn = false;
+    diffSet = false;
     if (!xyCloseEnough()) {
       translateOn = true;
       rotateOn = false;
