@@ -127,10 +127,6 @@ void draw() {
   fill(200);
   noStroke();
 
-  if (startTime == 0) {
-    startTime = millis();
-  }
-
   if (userDone) {
     text("User completed " + trialCount + " trials", width / 2, inchesToPixels(.2f));
     text("User had " + errorCount + " error(s)", width / 2, inchesToPixels(.2f) * 2);
@@ -349,6 +345,11 @@ float sliderX, sliderY;
 void mousePressed() {
   if (userDone) return; // if the user touches the screen after they're done, the code will crash 
   // from an out of bounds exception in the below statement, so that's why this appears throughout.
+  
+  if (startTime == 0) {
+    startTime = millis();
+    System.out.println("Time started!");
+  }
 
   // startingY is used for scaling
   startingY = mouseY; 
