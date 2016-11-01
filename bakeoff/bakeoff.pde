@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 import java.util.Collections;
 
-//import android.content.Context;
-//import android.os.Vibrator;
+import android.content.Context;
+import android.os.Vibrator;
 
 int index = 0;
 
@@ -37,8 +37,8 @@ float inchesToPixels(float inch) {
   return inch * screenPPI;
 }
 
-//Vibrator v;
-//long[] vibPattern = {0,300, 100};
+Vibrator v;
+long[] vibPattern = {0,300, 100};
 
 void setup() {
   // Size does not let you use variables, so you have to manually compute this
@@ -63,7 +63,7 @@ void setup() {
   }
 
   Collections.shuffle(targets); // randomize the order of the button; don't change this.
-  //v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+  v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
   
   sliderX = 0;
   sliderY = height / 2;
@@ -83,24 +83,26 @@ void draw() {
   if (xyCloseEnough() && rotCloseEnough() && sizeCloseEnough()) {
     // Once everything is aligned, phone vibrates until they move on to the next trial
     background(169, 204, 174);
-    //v.vibrate(vibPattern, 0);
+    v.vibrate(vibPattern, 0);
     fill(0, 255, 0);
     
     submitSize = inchesToPixels(.5f);
-    submitX = inchesToPixels(.5f) ;
-    submitY = inchesToPixels(.5f) ;
+    
+    if (!userDone) {
+      rect(0, 0, width, submitSize);
+    }
 
   } else {
-    //v.cancel();
+    v.cancel();
     fill(80);
     background(60);  // Background is dark grey
     submitSize = inchesToPixels(.2f) / 2;
     submitX = inchesToPixels(.2f) / 2;
     submitY = inchesToPixels(.2f) / 2;
-  }
-
-  if (!userDone) {
-    ellipse(submitX, submitY, submitSize, submitSize);
+    
+    if (!userDone) {
+      ellipse(submitX, submitY, submitSize, submitSize);
+    }
   }
   
   // This is just for printing some stuff only once (instead of as many times as draw is called)
@@ -372,7 +374,7 @@ void mouseDragged() {
     t.y += mouseY - pmouseY;
 
     if (xyCloseEnough()) {
-      //v.vibrate(100);
+      v.vibrate(100);
     }
   }
   
@@ -383,7 +385,7 @@ void mouseDragged() {
     startingY = mouseY;
     
     if (sizeCloseEnough()) {
-      //v.vibrate(100);
+      v.vibrate(100);
     }
   }
   
@@ -397,7 +399,7 @@ void mouseDragged() {
     startingY = mouseY; 
         
     if (rotCloseEnough()) {  
-      //v.vibrate(100);
+      v.vibrate(100);
     }
   }
 }
@@ -465,7 +467,7 @@ void mouseReleased() {
 
   // Check to see if user clicked corner of screen to submit
   if (dist(submitX, submitY, mouseX, mouseY) < submitSize / 2) {
-    //v.cancel();
+    v.cancel();
     
     if (userDone == false && !checkForSuccess()) {
       errorCount++;
