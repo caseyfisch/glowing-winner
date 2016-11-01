@@ -68,14 +68,15 @@ void setup() {
   sliderX = 0;
   sliderY = height / 2;
   
-  submitSize = inchesToPixels(.2f) / 2;
+  submitHeight = inchesToPixels(.2f) / 2;
+  submitWidth = inchesToPixels(.2f) / 2;
   submitX = inchesToPixels(.2f) / 2;
   submitY = inchesToPixels(.2f) / 2;
 }
 
 boolean printOnce = true;
 
-float submitSize;
+float submitHeight, submitWidth;
 float submitX, submitY;
 
 void draw() {
@@ -84,24 +85,28 @@ void draw() {
     // Once everything is aligned, phone vibrates until they move on to the next trial
     background(169, 204, 174);
     v.vibrate(vibPattern, 0);
-    fill(0, 255, 0);
+    fill(105, 229, 124);
     
-    submitSize = inchesToPixels(.5f);
+    submitHeight = inchesToPixels(1.0f);
+    submitWidth = width;
+    submitX = width / 2;
+    submitY = submitHeight / 2;
     
     if (!userDone) {
-      rect(0, 0, width, submitSize);
+      rect(submitX, submitY, submitWidth, submitHeight);
     }
 
   } else {
     v.cancel();
     fill(80);
     background(60);  // Background is dark grey
-    submitSize = inchesToPixels(.2f) / 2;
+    submitHeight = inchesToPixels(.2f) / 2;
+    submitWidth = inchesToPixels(.2f) / 2;
     submitX = inchesToPixels(.2f) / 2;
     submitY = inchesToPixels(.2f) / 2;
     
     if (!userDone) {
-      ellipse(submitX, submitY, submitSize, submitSize);
+      ellipse(submitX, submitY, submitWidth, submitHeight);
     }
   }
   
@@ -293,7 +298,7 @@ void scaffoldControlLogic() {
     
     stroke(157, 224, 103);
     strokeWeight(2 * inchesToPixels(.05f));
-    line(0, height / 2 - scaleDiff, width / 2, height / 2 - scaleDiff);
+    line(0, height / 2 + scaleDiff, width / 2, height / 2 + scaleDiff);
         
     stroke(255);
     strokeWeight(inchesToPixels(.05f));
@@ -345,8 +350,6 @@ void mousePressed() {
   if (userDone) return; // if the user touches the screen after they're done, the code will crash 
   // from an out of bounds exception in the below statement, so that's why this appears throughout.
 
-  Target t = targets.get(trialIndex);
-  
   // startingY is used for scaling
   startingY = mouseY; 
   
@@ -381,7 +384,7 @@ void mouseDragged() {
   // If scaling, scale linearly with mouseY 
   if (scaleOn) {  
     sliderY = sliderY - (startingY - mouseY);
-    t.z = t.z - (startingY - mouseY);
+    t.z = t.z + (startingY - mouseY);
     startingY = mouseY;
     
     if (sizeCloseEnough()) {
@@ -391,8 +394,6 @@ void mouseDragged() {
   
   // If rotating, rotate as the mouse moves around square
   if (rotateOn) {
-       
-    
     sliderY = sliderY - (startingY - mouseY);
     t.rotation = t.rotation + 0.5 * (startingY - mouseY); // multiplied by 0.5 to make the dragging
     // less sensitive (instead of 1 pixel = 1 degree, it's 2 pixels = 1 degree).
@@ -466,7 +467,8 @@ void mouseReleased() {
   //if (!(xyCloseEnough() && rotCloseEnough() && sizeCloseEnough())) return;
 
   // Check to see if user clicked corner of screen to submit
-  if (dist(submitX, submitY, mouseX, mouseY) < submitSize / 2) {
+  if (submitX - submitWidth / 2 <= mouseX && mouseX <= submitX + submitWidth / 2 
+     && submitY - submitHeight / 2 <= mouseY && mouseY <= submitY + submitHeight / 2) {
     v.cancel();
     
     if (userDone == false && !checkForSuccess()) {
@@ -489,7 +491,8 @@ void mouseReleased() {
     sliderX = 0;
     sliderY = height / 2;
     diffSet = false;
-    submitSize = inchesToPixels(.2f) / 2;
+    submitHeight = inchesToPixels(.2f) / 2;
+    submitWidth = inchesToPixels(.2f) / 2;
     submitX = inchesToPixels(.2f) / 2;
     submitY = inchesToPixels(.2f) / 2;
 
